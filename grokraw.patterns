@@ -1,0 +1,20 @@
+SUDO_TTY TTY=%{NOTSPACE:sudo_tty}
+SUDO_PWD PWD=%{DATA:sudo_pwd}
+SUDO_COMMAND COMMAND=%{DATA:sudo_command}
+SUDO_USER %{NOTSPACE:sudo_user}
+SUDO_RUNAS USER=%{SUDO_USER:sudo_runas}
+
+SUDO_INFO_COMMAND_SUCCESSFUL %{SUDO_USER} : %{SUDO_TTY} ; %{SUDO_PWD} ; %{SUDO_RUNAS} ; %{SUDO_COMMAND}
+SUDO_INFO_PAM_UNIX_SESSION_OPENED pam_unix\(%{NOTSPACE:user1}:session\): session opened for user %{NOTSPACE:sudo_runas} by %{SUDO_USER}\(uid=%{NUMBER}\)
+SUDO_INFO_PAM_UNIX_SESSION_CLOSED pam_unix\(%{NOTSPACE:user2}:session\): session closed for user %{NOTSPACE:sudo_runas}
+
+SUDO_INFO %{SUDO_INFO_COMMAND_SUCCESSFUL}|%{SUDO_INFO_PAM_UNIX_SESSION_OPENED}|%{SUDO_INFO_PAM_UNIX_SESSION_CLOSED}
+
+SUDO_ERROR_INCORRECT_PASSWORD_ATTEMPTS %{SUDO_USER} : %{NUMBER} incorrect password attempts ; %{SUDO_TTY} ; %{SUDO_PWD} ; %{SUDO_RUNAS} ; %{SUDO_COMMAND}
+SUDO_ERROR_FAILED_TO_GET_PASSWORD %{NOTSPACE:person} failed to get password: %{NOTSPACE:autherror} authentication error
+
+SUDO_PUBLICKEY %{NOTSPACE:hostname} sshd[%{PID}]: Accepted publickey for {%NOTSPACE:username} from %{NOTSPACE:sourceip} port %{NOTSPACE:port} ssh2: RSA %{NOTSPACE:rsakey}
+
+SUDO_ERROR %{SUDO_ERROR_FAILED_TO_GET_PASSWORD}|%{SUDO_ERROR_INCORRECT_PASSWORD_ATTEMPTS}
+
+SUDO %{SUDO_INFO}|%{SUDO_ERROR}|%{SUDO_PUBLICKEY}
