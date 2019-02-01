@@ -4,9 +4,15 @@ SUDO_COMMAND COMMAND=%{DATA:sudo_command}
 SUDO_USER %{NOTSPACE:sudo_user}
 SUDO_RUNAS USER=%{SUDO_USER:sudo_runas}
 
+SUDO_REMOVE_SESSION %{SYSLOGTIMESTAMP:timestamp8} %{NOTSPACE:hostname8} %{NOTSPACE:appcaller} \[%{NOTSPACE:pid7}\]: %{GREEDYDATA:sessionremoval}
+
 SUDO_INFO_COMMAND_SUCCESSFUL %{SUDO_USER:sudo_user2} : %{SUDO_TTY:sudo_tty2} ; %{SUDO_PWD:sudo_pwd2} ; %{SUDO_RUNAS:sudo_runas2} ; %{SUDO_COMMAND:sudo_command2}
 SUDO_INFO_PAM_UNIX_SESSION_OPENED pam_unix\(%{NOTSPACE:user1}:session\): session opened for user %{NOTSPACE:sudo_runas3} by %{SUDO_USER:sudo_user3}\(uid=%{NUMBER:uid3}\)
 SUDO_INFO_PAM_UNIX_SESSION_CLOSED pam_unix\(%{NOTSPACE:user4}:session\): session closed for user %{NOTSPACE:sudo_runas4}
+
+SUDO_PAM_OPEN2 %{SYSLOGTIMESTAMP:timestamp8} %{NOTSPACE:hostname8} %{NOTSPACE:appcaller}: pam_unix\(%{NOTSPACE:user1}:session\): session opened for user %{NOTSPACE:sudo_runas81} by \(uid=%{NUMBER:uid81}\)
+
+SUDO_SEAT %{SYSLOGTIMESTAMP:timestamp77} %{NOTSPACE:hostname77} %{NOTSPACE:appcaller77}\[%{NOTSPACE:pid77}\]: %{GREEDYDATA:message77}
 
 SUDO_INFO %{SUDO_INFO_COMMAND_SUCCESSFUL:cmdsuccess}|%{SUDO_INFO_PAM_UNIX_SESSION_OPENED:pam_opened}|%{SUDO_INFO_PAM_UNIX_SESSION_CLOSED:pam_closed}
 
@@ -15,7 +21,7 @@ SUDO_ERROR_FAILED_TO_GET_PASSWORD %{NOTSPACE:person6} failed to get password: %{
 
 SUDO_PUBLICKEY %{SYSLOGTIMESTAMP:timestamp7} %{NOTSPACE:hostname7} sshd\[%{NOTSPACE:pid7}\]: Accepted publickey for %{NOTSPACE:username} from %{NOTSPACE:sourceip} port %{NOTSPACE:port} ssh2: RSA %{NOTSPACE:rsakey}
 
-SUDO_OPEN_PAM %{SYSLOGTIMESTAMP:timestamp8} %{NOTSPACE:hostname8} sshd\[%{NOTSPACE:pid8}\]: pam_unix\(%{NOTSPACE:user1}:session\): session opened for user %{NOTSPACE:sudo_runas} by \(uid=%{NUMBER:uid}\)
+SUDO_OPEN_PAM %{SYSLOGTIMESTAMP:timestamp8} %{NOTSPACE:hostname8} %{NOTSPACE:appcaller}\[%{NOTSPACE:pid8}\]: pam_unix\(%{NOTSPACE:user1}:session\): session opened for user %{NOTSPACE:sudo_runas} by \(uid=%{NUMBER:uid}\)
 
 SYSLOGBASE2 (?:%{SYSLOGTIMESTAMP:timestamp9}|%{TIMESTAMP_ISO8601:timestamp8601}) (?:%{SYSLOGFACILITY} )?%{SYSLOGHOST:logsource} %{SYSLOGPROG}:
 SYSLOGPAMSESSION %{SYSLOGBASE} (?=%{GREEDYDATA:message})%{WORD:pam_module}\(%{DATA:pam_caller}\): session %{WORD:pam_session_state} for user %{USERNAME:username}(?: by %{NOTSPACE:pam_by})?
@@ -45,4 +51,4 @@ SSH_AUTHFAIL_WRONGCREDS Failed %{WORD:ssh_authmethod} for %{USERNAME:ssh_user} f
 SSH_AUTH_SUCCESS Accepted %{WORD:ssh_authmethod} for %{USERNAME:ssh_user} from %{IP:ssh_client_ip} port %{NUMBER:ssh_client_port} %{WORD:ssh_x}  %{WORD:ssh_pubkey_type} %{GREEDYDATA:ssh_pubkey_fingerprint}
 SSH_DISCONNECT Received disconnect from %{IP:ssh_client_ip} port %{INT:ssh_client_port}.*?:\s+%{GREEDYDATA:ssh_disconnect_reason}
 SSH %{SSH_DISCONNECT}|%{SSH_AUTH_SUCCESS}|%{SSH_AUTHFAIL_WRONGUSER}|%{SSH_AUTHFAIL_WRONGCREDS}
-SUDO %{SUDO_INFO}|%{SUDO_ERROR}|%{SUDO_PUBLICKEY}|%{SSH}|%{SUDO_OPEN_PAM}
+SUDO %{SUDO_INFO}|%{SUDO_ERROR}|%{SUDO_PUBLICKEY}|%{SSH}|%{SUDO_OPEN_PAM}|%{SUDO_REMOVE_SESSION}|%{SUDO_PAM_OPEN2}|%{SUDO_SEAT}
