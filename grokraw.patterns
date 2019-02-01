@@ -4,17 +4,45 @@ SUDO_COMMAND COMMAND=%{DATA:sudo_command}
 SUDO_USER %{NOTSPACE:sudo_user}
 SUDO_RUNAS USER=%{SUDO_USER:sudo_runas}
 
-SUDO_INFO_COMMAND_SUCCESSFUL %{SUDO_USER} : %{SUDO_TTY} ; %{SUDO_PWD} ; %{SUDO_RUNAS} ; %{SUDO_COMMAND}
-SUDO_INFO_PAM_UNIX_SESSION_OPENED pam_unix\(%{NOTSPACE:user1}:session\): session opened for user %{NOTSPACE:sudo_runas} by %{SUDO_USER}\(uid=%{NUMBER}\)
-SUDO_INFO_PAM_UNIX_SESSION_CLOSED pam_unix\(%{NOTSPACE:user2}:session\): session closed for user %{NOTSPACE:sudo_runas}
+SUDO_INFO_COMMAND_SUCCESSFUL %{SUDO_USER:sudo_user2} : %{SUDO_TTY:sudo_tty2} ; %{SUDO_PWD:sudo_pwd2} ; %{SUDO_RUNAS:sudo_runas2} ; %{SUDO_COMMAND:sudo_command2}
+SUDO_INFO_PAM_UNIX_SESSION_OPENED pam_unix\(%{NOTSPACE:user1}:session\): session opened for user %{NOTSPACE:sudo_runas3} by %{SUDO_USER:sudo_user3}\(uid=%{NUMBER:uid3}\)
+SUDO_INFO_PAM_UNIX_SESSION_CLOSED pam_unix\(%{NOTSPACE:user4}:session\): session closed for user %{NOTSPACE:sudo_runas4}
 
-SUDO_INFO %{SUDO_INFO_COMMAND_SUCCESSFUL}|%{SUDO_INFO_PAM_UNIX_SESSION_OPENED}|%{SUDO_INFO_PAM_UNIX_SESSION_CLOSED}
+SUDO_INFO %{SUDO_INFO_COMMAND_SUCCESSFUL:cmdsuccess}|%{SUDO_INFO_PAM_UNIX_SESSION_OPENED:pam_opened}|%{SUDO_INFO_PAM_UNIX_SESSION_CLOSED:pam_closed}
 
-SUDO_ERROR_INCORRECT_PASSWORD_ATTEMPTS %{SUDO_USER} : %{NUMBER} incorrect password attempts ; %{SUDO_TTY} ; %{SUDO_PWD} ; %{SUDO_RUNAS} ; %{SUDO_COMMAND}
-SUDO_ERROR_FAILED_TO_GET_PASSWORD %{NOTSPACE:person} failed to get password: %{NOTSPACE:autherror} authentication error
+SUDO_ERROR_INCORRECT_PASSWORD_ATTEMPTS %{SUDO_USER} : %{NUMBER} incorrect password attempts ; %{SUDO_TTY:sudo_tty5} ; %{SUDO_PWD:sudo_pwd5} ; %{SUDO_RUNAS:sudo_runas5} ; %{SUDO_COMMAND:sudo_cmd5}
+SUDO_ERROR_FAILED_TO_GET_PASSWORD %{NOTSPACE:person6} failed to get password: %{NOTSPACE:autherror6} authentication error
 
-SUDO_PUBLICKEY %{NOTSPACE:hostname} sshd[%{PID}]: Accepted publickey for {%NOTSPACE:username} from %{NOTSPACE:sourceip} port %{NOTSPACE:port} ssh2: RSA %{NOTSPACE:rsakey}
+SUDO_PUBLICKEY %{SYSLOGTIMESTAMP:timestamp7} %{NOTSPACE:hostname7} sshd\[%{NOTSPACE:pid7}\]: Accepted publickey for %{NOTSPACE:username} from %{NOTSPACE:sourceip} port %{NOTSPACE:port} ssh2: RSA %{NOTSPACE:rsakey}
+
+SUDO_OPEN_PAM %{SYSLOGTIMESTAMP:timestamp8} %{NOTSPACE:hostname8} sshd\[%{NOTSPACE:pid8}\]: pam_unix\(%{NOTSPACE:user1}:session\): session opened for user %{NOTSPACE:sudo_runas} by \(uid=%{NUMBER:uid}\)
+
+SYSLOGBASE2 (?:%{SYSLOGTIMESTAMP:timestamp9}|%{TIMESTAMP_ISO8601:timestamp8601}) (?:%{SYSLOGFACILITY} )?%{SYSLOGHOST:logsource} %{SYSLOGPROG}:
+SYSLOGPAMSESSION %{SYSLOGBASE} (?=%{GREEDYDATA:message})%{WORD:pam_module}\(%{DATA:pam_caller}\): session %{WORD:pam_session_state} for user %{USERNAME:username}(?: by %{NOTSPACE:pam_by})?
+
+CRON_ACTION [A-Z ]+
+CRONLOG %{SYSLOGBASE} \(%{USER:user9}\) %{CRON_ACTION:action9} \(%{DATA:message9}\)
+
+SYSLOGLINE %{SYSLOGBASE2} %{GREEDYDATA:message10}
 
 SUDO_ERROR %{SUDO_ERROR_FAILED_TO_GET_PASSWORD}|%{SUDO_ERROR_INCORRECT_PASSWORD_ATTEMPTS}
 
-SUDO %{SUDO_INFO}|%{SUDO_ERROR}|%{SUDO_PUBLICKEY}
+GREEDYMULTILINE (.|\n)*
+
+AUTH1 %{SYSLOGTIMESTAMP:systemauthtimestamp} %{SYSLOGHOST:systemauthhostname11} sshd(?:\[%{POSINT:systemauthpid11}\])?: %{DATA:systemauthsshevent} %{DATA:systemauthsshmethod} for (invalid user )?%{DATA:systemauthuser} from %{IPORHOST:systemauthsship} port %{NUMBER:systemauthsshport} ssh2(: %{GREEDYDATA:systemauthsshsignature})?
+AUTH2 %{SYSLOGTIMESTAMP:systemauthtimestamp} %{SYSLOGHOST:systemauthhostname12} sshd(?:\[%{POSINT:systemauthpid12}\])?: %{DATA:systemauthsshevent} user %{DATA:systemauthuser} from %{IPORHOST:systemauthsship}
+AUTH3 %{SYSLOGTIMESTAMP:systemauthtimestamp} %{SYSLOGHOST:systemauthhostname14} sshd(?:\[%{POSINT:systemauthpid13}\])?: Did not receive identification string from %{IPORHOST:systemauthsshdroppedip}
+AUTH4 %{SYSLOGTIMESTAMP:systemauthtimestamp} %{SYSLOGHOST:systemauthhostname15} sudo(?:\[%{POSINT:systemauthpid14}\])?: \s*%{DATA:systemauthuser} :( %{DATA:systemauthsudoerror} ;)? TTY=%{DATA:systemauthsudotty} ; PWD=%{DATA:systemauthsudopwd} ; USER=%{DATA:systemauthsudouser} ; COMMAND=%{GREEDYDATA:systemauthosudocmd}
+AUTH5 %{SYSLOGTIMESTAMP:systemauthtimestamp} %{SYSLOGHOST:systemauthhostname16} groupadd(?:\[%{POSINT:systemauthpid15}\])?: new group: name=%{DATA:systemauthgroupaddname}, GID=%{NUMBER:systemauthgroupaddgid}
+AUTH6 %{SYSLOGTIMESTAMP:systemauthtimestamp} %{SYSLOGHOST:systemauthhostname17} useradd(?:\[%{POSINT:systemauthpid16}\])?: new user: name=%{DATA:systemauthuseraddname}, UID=%{NUMBER:systemauthuseradduid}, GID=%{NUMBER:systemauthuseraddgid}, home=%{DATA:systemauthuseraddhome}, shell=%{DATA:systemauthuseraddshell}$
+AUTH7 %{SYSLOGTIMESTAMP:systemauthtimestamp} %{SYSLOGHOST:systemauthhostname18} %{DATA:systemauthprogram17}(?:\[%{POSINT:systemauthpid17}\])?: %{GREEDYMULTILINE:systemauthmessage}"] }
+AUTH_LOG %{AUTH1}|%{AUTH2}|%{AUTH3}|%{AUTH4}|%{AUTH5}|%{AUTH6}|%{AUTH7}
+
+SU \+\s+%{DATA:su_tty19}\s+%{USER:su_user19}:%{USER:su_targetuser19}
+
+SSH_AUTHFAIL_WRONGUSER Failed %{WORD:ssh_authmethod} for invalid user %{USERNAME:ssh_user} from %{IP:ssh_client_ip} port %{NUMBER:ssh_client_port} %{GREEDYDATA:message}
+SSH_AUTHFAIL_WRONGCREDS Failed %{WORD:ssh_authmethod} for %{USERNAME:ssh_user} from %{IP:ssh_client_ip} port %{NUMBER:ssh_client_port} %{GREEDYDATA:message}
+SSH_AUTH_SUCCESS Accepted %{WORD:ssh_authmethod} for %{USERNAME:ssh_user} from %{IP:ssh_client_ip} port %{NUMBER:ssh_client_port} %{WORD:ssh_x}  %{WORD:ssh_pubkey_type} %{GREEDYDATA:ssh_pubkey_fingerprint}
+SSH_DISCONNECT Received disconnect from %{IP:ssh_client_ip} port %{INT:ssh_client_port}.*?:\s+%{GREEDYDATA:ssh_disconnect_reason}
+SSH %{SSH_DISCONNECT}|%{SSH_AUTH_SUCCESS}|%{SSH_AUTHFAIL_WRONGUSER}|%{SSH_AUTHFAIL_WRONGCREDS}
+SUDO %{SUDO_INFO}|%{SUDO_ERROR}|%{SUDO_PUBLICKEY}|%{SSH}|%{SUDO_OPEN_PAM}
